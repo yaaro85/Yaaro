@@ -13,12 +13,13 @@ class YaaroApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Yaaro',
       theme: ThemeData(
-        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF12091F),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7B2CBF),
-          brightness: Brightness.light,
+          seedColor: const Color(0xFF8E2DE2),
+          brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF9F5FF),
+        useMaterial3: true,
       ),
       home: const YaaroHome(),
     );
@@ -35,29 +36,27 @@ class YaaroHome extends StatefulWidget {
 class _YaaroHomeState extends State<YaaroHome> {
   int selectedIndex = 0;
 
-  final pages = const [
-    _HomePage(),
-    _SearchPage(),
-    _NotificationsPage(),
-    _ProfilePage(),
+  final List<Widget> pages = const [
+    HomePage(),
+    SearchPage(),
+    CreatePage(),
+    NotificationsPage(),
+    ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Yaaro',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        backgroundColor: Colors.transparent,
-      ),
       body: pages[selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
-          setState(() => selectedIndex = index);
+          setState(() {
+            selectedIndex = index;
+          });
         },
+        backgroundColor: const Color(0xFF1B0D2B),
+        indicatorColor: const Color(0xFF8E2DE2),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -67,6 +66,11 @@ class _YaaroHomeState extends State<YaaroHome> {
           NavigationDestination(
             icon: Icon(Icons.search),
             label: 'Search',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_box_outlined),
+            selectedIcon: Icon(Icons.add_box),
+            label: 'Create',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_none),
@@ -84,102 +88,212 @@ class _YaaroHomeState extends State<YaaroHome> {
   }
 }
 
-class _HomePage extends StatelessWidget {
-  const _HomePage();
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF7B2CBF),
-                Color(0xFFE83E8C),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(22),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Welcome to Yaaro 👋',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+    return SafeArea(
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            backgroundColor: const Color(0xFF12091F),
+            title: const Text(
+              'Yaaro',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
               ),
-              SizedBox(height: 6),
-              Text(
-                'Connect, share and discover.',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.chat_bubble_outline),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 20),
-        const _PostCard(),
-        const _PostCard(),
-      ],
+
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 105,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                children: const [
+                  StoryItem(name: 'Your Story', isAdd: true),
+                  StoryItem(name: 'Yaaro'),
+                  StoryItem(name: 'Friends'),
+                  StoryItem(name: 'Explore'),
+                  StoryItem(name: 'Creator'),
+                ],
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: PostCard(
+              username: 'Yaaro',
+              caption: 'Welcome to Yaaro! 👋',
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: PostCard(
+              username: 'Yaaro Community',
+              caption: 'Connect • Share • Discover 💜',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _PostCard extends StatelessWidget {
-  const _PostCard();
+class StoryItem extends StatelessWidget {
+  final String name;
+  final bool isAdd;
+
+  const StoryItem({
+    super.key,
+    required this.name,
+    this.isAdd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 78,
+      margin: const EdgeInsets.only(right: 12),
+      child: Column(
+        children: [
+          Container(
+            width: 65,
+            height: 65,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF8E2DE2),
+                  Color(0xFFFF2D95),
+                ],
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                isAdd ? Icons.add : Icons.person,
+                size: 30,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PostCard extends StatefulWidget {
+  final String username;
+  final String caption;
+
+  const PostCard({
+    super.key,
+    required this.username,
+    required this.caption,
+  });
+
+  @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  bool liked = false;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      color: const Color(0xFF211132),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
+                  backgroundColor: Color(0xFF8E2DE2),
                   child: Icon(Icons.person),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Text(
-                  'Yaaro User',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  widget.username,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+
+            const SizedBox(height: 12),
+
             Container(
-              height: 180,
+              height: 230,
+              width: double.infinity,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFFEDE7F6),
+                borderRadius: BorderRadius.circular(14),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF8E2DE2),
+                    Color(0xFFFF2D95),
+                  ],
+                ),
               ),
               child: const Center(
                 child: Icon(
-                  Icons.image_outlined,
-                  size: 54,
+                  Icons.image,
+                  size: 70,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-            const Row(
+
+            const SizedBox(height: 8),
+
+            Row(
               children: [
-                Icon(Icons.favorite_border),
-                SizedBox(width: 18),
-                Icon(Icons.chat_bubble_outline),
-                SizedBox(width: 18),
-                Icon(Icons.send_outlined),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      liked = !liked;
+                    });
+                  },
+                  icon: Icon(
+                    liked
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: liked ? Colors.pink : null,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.comment_outlined),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.share_outlined),
+                ),
               ],
+            ),
+
+            Text(
+              widget.caption,
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -188,43 +302,75 @@ class _PostCard extends StatelessWidget {
   }
 }
 
-class _SearchPage extends StatelessWidget {
-  const _SearchPage();
+class SearchPage extends StatelessWidget {
+  const SearchPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Yaaro Search',
-        style: TextStyle(fontSize: 22),
+    return const SafeArea(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              'Search',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Search Yaaro...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _NotificationsPage extends StatelessWidget {
-  const _NotificationsPage();
+class CreatePage extends StatelessWidget {
+  const CreatePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Create Post',
+        style: TextStyle(fontSize: 28),
+      ),
+    );
+  }
+}
+
+class NotificationsPage extends StatelessWidget {
+  const NotificationsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Center(
       child: Text(
         'Notifications',
-        style: TextStyle(fontSize: 22),
+        style: TextStyle(fontSize: 28),
       ),
     );
   }
 }
 
-class _ProfilePage extends StatelessWidget {
-  const _ProfilePage();
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Center(
       child: Text(
-        'My Profile',
-        style: TextStyle(fontSize: 22),
+        'Profile',
+        style: TextStyle(fontSize: 28),
       ),
     );
   }
